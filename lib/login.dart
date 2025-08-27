@@ -10,35 +10,37 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.white, body: content());
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(child: content(context)),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
-  Widget content() {
+  Widget content(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(50),
-              bottomRight: Radius.circular(50),
-            ),
-          ),
-          height: 400,
+          height: size.height * 0.4,
           width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Image.asset(
-              "assets/1.png",
-              fit: BoxFit.contain,
-              width: double.infinity,
-              height: 50,
-            ),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Image.asset("assets/1.png", fit: BoxFit.contain),
         ),
-        const SizedBox(height: 50),
 
+        // Be a Donor Button
         GestureDetector(
           onTap: () {
             Navigator.of(context).pushNamed("/survey");
@@ -47,6 +49,8 @@ class _LoginState extends State<Login> {
         ),
 
         const SizedBox(height: 20),
+
+        // Request Blood Button
         GestureDetector(
           onTap: () {
             Navigator.of(context).pushNamed("/bloodRequest");
@@ -54,30 +58,30 @@ class _LoginState extends State<Login> {
           child: LoginButton(title: "Request Blood"),
         ),
 
-        const SizedBox(height: 30),
+        const SizedBox(height: 40),
+
+        // Already have a donor profile?
         const Text(
           "Already have a donor profile?",
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Color.fromARGB(137, 0, 0, 0),
+            fontWeight: FontWeight.w900,
+            color: Color.fromARGB(99, 0, 0, 0),
           ),
         ),
         const SizedBox(height: 10),
 
-        // Navigate to the Donor Profile Edit page
+        // Edit Donor Profile
         GestureDetector(
           onTap: () {
-            Navigator.of(context).pushNamed(
-              '/editDonorProfile',
-            ); // Navigate to the Edit Donor Profile page
+            Navigator.of(context).pushNamed('/editDonorProfile');
           },
           child: LoginButton(title: "Edit your donor profile"),
         ),
 
-        const SizedBox(
-          height: 10,
-        ), // Space between the button and Learn More text
+        const SizedBox(height: 20),
+
+        // Learn More
         GestureDetector(
           onTap: () {
             Navigator.of(context).pushNamed("/about");
@@ -85,12 +89,14 @@ class _LoginState extends State<Login> {
           child: const Text(
             "Learn More",
             style: TextStyle(
-              color: Color.fromARGB(255, 255, 17, 0),
+              color: Color.fromARGB(255, 255, 0, 0),
               fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
+
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -103,14 +109,15 @@ class LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        height: 80,
-        width: double.infinity,
+        height: 60,
+        width: width,
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 255, 0, 0),
-          borderRadius: BorderRadius.circular(50),
+          borderRadius: BorderRadius.circular(40),
         ),
         child: Center(
           child: Text(
@@ -118,7 +125,7 @@ class LoginButton extends StatelessWidget {
             style: const TextStyle(
               fontSize: 20,
               color: Colors.white,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

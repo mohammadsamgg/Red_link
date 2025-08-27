@@ -12,29 +12,28 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
-    startTimer();
+    Timer(const Duration(seconds: 2), _navigateToLogin);
   }
 
-  startTimer() {
-    var duration = Duration(seconds: 2);
-    Timer(duration, route);
-  }
-
-  route() {
+  void _navigateToLogin() {
     Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset("assets/Transparent.png"),
-            SizedBox(height: 20),
-          ], // children
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Flexible(
+              child: Image(
+                image: AssetImage("assets/1.png"),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
         ),
       ),
     );

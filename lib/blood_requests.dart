@@ -9,143 +9,132 @@ class BloodRequestPage extends StatefulWidget {
 }
 
 class _BloodRequestPageState extends State<BloodRequestPage> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  String? _selectedBloodType;
+  final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _location = TextEditingController();
 
-  final List<String> _bloodTypes = [
-    "A+",
-    "A-",
-    "B+",
-    "B-",
-    "AB+",
-    "AB-",
-    "O+",
-    "O-",
-  ];
+  String? _bloodType;
+  final _types = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-  void _submitRequest() async {
-    if (_nameController.text.isNotEmpty &&
-        _phoneController.text.isNotEmpty &&
-        _locationController.text.isNotEmpty &&
-        _selectedBloodType != null) {
-      await FirebaseFirestore.instance.collection('blood_requests').add({
-        'name': _nameController.text,
-        'phone': _phoneController.text,
-        'location': _locationController.text,
-        'bloodType': _selectedBloodType,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Blood request submitted successfully!")),
-      );
-
-      _nameController.clear();
-      _phoneController.clear();
-      _locationController.clear();
-      setState(() {
-        _selectedBloodType = null;
-      });
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Please fill all fields!")));
+  Future<void> _submit() async {
+    if (_name.text.isEmpty ||
+        _phone.text.isEmpty ||
+        _location.text.isEmpty ||
+        _bloodType == null) {
+      _showMsg("Please fill all fields!");
+      return;
     }
+
+    final phone = _phone.text.trim();
+
+    await FirebaseFirestore.instance
+        .collection('blood_requests')
+        .doc(phone)
+        .set({
+          'id': phone,
+          'name': _name.text,
+          'phone': phone,
+          'location': _location.text,
+          'bloodType': _bloodType,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+    _showMsg("Blood request submitted successfully!");
+
+    _name.clear();
+    _phone.clear();
+    _location.clear();
+    setState(() => _bloodType = null);
   }
+
+  void _showMsg(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Widget _inputField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    TextInputType? type,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: type,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.red),
+        labelStyle: const TextStyle(fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
+  Widget _dropdown() => DropdownButtonFormField<String>(
+    value: _bloodType,
+    items:
+        _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+    onChanged: (val) => setState(() => _bloodType = val),
+    decoration: const InputDecoration(
+      labelText: "Blood Type",
+      prefixIcon: Icon(Icons.bloodtype, color: Colors.red),
+      labelStyle: TextStyle(fontWeight: FontWeight.w800),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        backgroundColor: Colors.red,
+        title: const Text(
           "Request Blood",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: "Your Name",
-                labelStyle: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+            _inputField(_name, "Your Name", Icons.person),
+            const SizedBox(height: 10),
+            _inputField(
+              _phone,
+              "Phone Number",
+              Icons.phone,
+              type: TextInputType.phone,
+            ),
+            const SizedBox(height: 10),
+            _inputField(_location, "Location", Icons.location_on),
+            const SizedBox(height: 15),
+            _dropdown(),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+                child: const Text(
+                  "Submit Request",
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _phoneController,
-              decoration: InputDecoration(
-                labelText: "Phone Number",
-                labelStyle: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _locationController,
-              decoration: InputDecoration(
-                labelText: "Location",
-                labelStyle: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            SizedBox(height: 15),
-            DropdownButtonFormField<String>(
-              value: _selectedBloodType,
-              items:
-                  _bloodTypes.map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(
-                        type,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedBloodType = value;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: "Blood Type",
-                labelStyle: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submitRequest,
-              child: Text(
-                "Submit Request",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(height: 30),
-            Text(
+            const SizedBox(height: 30),
+            const Text(
               "Available Donors:",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Expanded(child: DonorList(bloodType: _selectedBloodType)),
+            Expanded(child: DonorList(bloodType: _bloodType)),
           ],
         ),
       ),
@@ -160,10 +149,10 @@ class DonorList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (bloodType == null) {
-      return Center(
+      return const Center(
         child: Text(
           "Select a blood type to view donors",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          style: TextStyle(fontWeight: FontWeight.w800),
         ),
       );
     }
@@ -176,32 +165,34 @@ class DonorList extends StatelessWidget {
               .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(
+          return const Center(
             child: Text(
               "No donors available for this blood type",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              style: TextStyle(fontWeight: FontWeight.w800),
             ),
           );
         }
 
-        var donors = snapshot.data!.docs;
-
-        return ListView.builder(
-          itemCount: donors.length,
-          itemBuilder: (context, index) {
-            var donor = donors[index].data() as Map<String, dynamic>;
-
+        return ListView.separated(
+          itemCount: snapshot.data!.docs.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, i) {
+            final donor = snapshot.data!.docs[i].data() as Map<String, dynamic>;
             return Card(
               child: ListTile(
                 title: Text(
                   donor['name'],
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
                 subtitle: Text(
                   "${donor['phone']} • ${donor['location']}",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                trailing: Icon(Icons.bloodtype, color: Colors.red),
+                trailing: const Icon(
+                  Icons.bloodtype,
+                  color: Colors.red,
+                  size: 30,
+                ),
               ),
             );
           },
